@@ -57,7 +57,8 @@ class MainActivity : AddStickerPackActivity() {
                         progressDialog?.show();
                         StickerBook().downloadAsset(this, stickerPack) { finish, total ->
                             runOnUiThread {
-                                progressDialog!!.setMessage("Downloading $finish/$total")
+                                var persen = ((finish.toFloat() / total.toFloat()) * 100).toInt()
+                                progressDialog!!.setMessage("Downloading $persen%")
                                 if (finish >= total) {
                                     progressDialog!!.dismiss()
                                     Log.d("LOG", "Item Download finsih : " + stickerPack?.name)
