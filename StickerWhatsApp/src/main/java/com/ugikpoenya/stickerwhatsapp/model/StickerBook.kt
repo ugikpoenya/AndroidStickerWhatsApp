@@ -6,6 +6,7 @@ import android.database.MatrixCursor
 import android.net.Uri
 import android.text.TextUtils
 import android.util.Log
+import android.webkit.URLUtil
 import com.android.volley.NetworkResponse
 import com.android.volley.Request
 import com.android.volley.Response
@@ -207,11 +208,7 @@ class StickerBook {
             if (name == null) {
                 name = trayImageFile?.substring(0, trayImageFile.lastIndexOf('.'))
             }
-            try {
-                name = URI(name).path
-            } catch (e: IOException) {
-                Log.d("LOG", "Error name " + name)
-            }
+            name = parserName(name)
 
             Log.d("LOG", "Parser " + identifier + " / " + stickerList.size)
             val stickerPack = StickerPack(identifier, name, publisher, trayImageFile, trayImageUrl, publisherEmail, publisherWebsite, privacyPolicyWebsite, licenseAgreementWebsite, imageDataVersion, avoidCache, animatedStickerPack)
@@ -219,6 +216,16 @@ class StickerBook {
             stickerPack
         } else {
             null
+        }
+    }
+
+    private fun parserName(name: String?): String? {
+        return try {
+            if (name.toString().contains("%")) URI(name).path
+            else name
+        } catch (e: IOException) {
+            Log.d("LOG", "Error name " + name)
+            name
         }
     }
 
