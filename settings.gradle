@@ -1,0 +1,3 @@
+rootProject.name = "AndroidStickerWhatsApp"
+include ':app'
+include ':StickerWhatsApp'
