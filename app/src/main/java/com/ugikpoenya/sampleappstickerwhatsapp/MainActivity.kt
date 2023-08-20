@@ -75,7 +75,7 @@ class MainActivity : AddStickerPackActivity() {
     private fun getJsonData() {
         binding.swipeRefresh.isRefreshing = true
         serverManager.getAssetFolders(this) { response ->
-            val list = StickerBook().iniStickerPackListParser(this, response)
+            val list = StickerBook().getStickerPackList(this, response)
             groupieAdapter.clear()
             list.forEach {
                 groupieAdapter.add(StickerPackViewHolder(this, it))

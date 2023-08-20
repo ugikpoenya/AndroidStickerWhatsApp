@@ -11,6 +11,7 @@ import android.os.ParcelFileDescriptor
 import android.text.TextUtils
 import android.util.Log
 import com.ugikpoenya.stickerwhatsapp.model.StickerBook
+import com.ugikpoenya.stickerwhatsapp.model.StickerCursor
 import java.io.File
 import java.io.IOException
 import java.util.Objects
@@ -39,10 +40,12 @@ import java.util.Objects
 
     override fun query(uri: Uri, projection: Array<String>?, selection: String?, selectionArgs: Array<String>?, sortOrder: String?): Cursor? {
         val code = MATCHER.match(uri)
-        Log.d("LOG", "query " + uri.query)
+        Log.d("LOG", "ContentProvider query " + code)
+
+        val stickerPackList = StickerBook().getStickerPackList(context!!)
 
         val authority = context?.packageName + ".stickercontentprovider"
-        for (stickerPack in StickerBook().readContentFile(context!!)) {
+        for (stickerPack in stickerPackList) {
             MATCHER.addURI(authority, STICKERS_ASSET + "/" + stickerPack.identifier + "/" + stickerPack.trayImageFile, STICKER_PACK_TRAY_ICON_CODE)
             for (sticker in stickerPack.stickers!!) {
                 MATCHER.addURI(authority, STICKERS_ASSET + "/" + stickerPack.identifier + "/" + sticker!!.imageFileName, STICKERS_ASSET_CODE)
@@ -51,15 +54,15 @@ import java.util.Objects
 
         return when (code) {
             METADATA_CODE -> {
-                StickerBook().getStickerPackInfo(context!!, uri)
+                StickerCursor().getStickerPackInfo(context!!, uri, stickerPackList)
             }
 
             METADATA_CODE_FOR_SINGLE_PACK -> {
-                StickerBook().getCursorForSingleStickerPack(context!!, uri)
+                StickerCursor().getCursorForSingleStickerPack(context!!, uri, stickerPackList)
             }
 
             STICKERS_CODE -> {
-                StickerBook().getStickersForAStickerPack(context!!, uri)
+                StickerCursor().getStickersForAStickerPack(context!!, uri)
             }
 
             else -> {

@@ -37,58 +37,19 @@ class StickerBook {
         editor.apply()
     }
 
-
-    fun getStickerPackInfo(context: Context, uri: Uri, stickerPackList: List<StickerPack>? = null): Cursor {
-        Log.d("LOG", "getStickerPackInfo ")
-        val cursor = MatrixCursor(arrayOf(STICKER_PACK_IDENTIFIER_IN_QUERY, STICKER_PACK_NAME_IN_QUERY, STICKER_PACK_PUBLISHER_IN_QUERY, STICKER_PACK_ICON_IN_QUERY, ANDROID_APP_DOWNLOAD_LINK_IN_QUERY, IOS_APP_DOWNLOAD_LINK_IN_QUERY, PUBLISHER_EMAIL, PUBLISHER_WEBSITE, PRIVACY_POLICY_WEBSITE, LICENSE_AGREENMENT_WEBSITE, IMAGE_DATA_VERSION, AVOID_CACHE, ANIMATED_STICKER_PACK))
-        var packList = stickerPackList
-        if (packList == null) {
-            packList = readContentFile(context)
-        }
-
-        for (stickerPack in packList) {
-            val builder = cursor.newRow()
-            builder.add(stickerPack.identifier)
-            builder.add(stickerPack.name)
-            builder.add(stickerPack.publisher)
-            builder.add(stickerPack.trayImageFile)
-            builder.add(stickerPack.androidPlayStoreLink)
-            builder.add(stickerPack.iosAppStoreLink)
-            builder.add(stickerPack.publisherEmail)
-            builder.add(stickerPack.publisherWebsite)
-            builder.add(stickerPack.privacyPolicyWebsite)
-            builder.add(stickerPack.licenseAgreementWebsite)
-            builder.add(stickerPack.imageDataVersion)
-            builder.add(if (stickerPack.avoidCache) 1 else 0)
-            builder.add(if (stickerPack.animatedStickerPack) 1 else 0)
-        }
-        cursor.setNotificationUri(Objects.requireNonNull(context)!!.contentResolver, uri)
-        return cursor
-    }
-
-    fun getCursorForSingleStickerPack(context: Context, uri: Uri): Cursor {
-        val identifier = uri.lastPathSegment
-        Log.d("LOG", "getCursorForSingleStickerPack " + identifier)
-        for (stickerPack in readContentFile(context)) {
-            if (identifier == stickerPack.identifier) {
-                return getStickerPackInfo(context, uri, listOf(stickerPack))
+    fun deletePack(context: Context, identifier: String?) {
+        Log.d("LOG", "deletePack " + identifier)
+        val directory = context.getExternalFilesDir(identifier)
+        if (directory!!.isDirectory) {
+            for (file in directory.listFiles()) {
+                file.delete()
             }
+            directory.delete()
         }
-        return getStickerPackInfo(context, uri, ArrayList())
     }
 
-    fun getStickersForAStickerPack(context: Context, uri: Uri): Cursor {
-        val stickerPack = StickerBook().getStickerPackFile(context, uri.lastPathSegment)
-        val cursor = MatrixCursor(arrayOf(STICKER_FILE_NAME_IN_QUERY, STICKER_FILE_EMOJI_IN_QUERY))
-        for (sticker in stickerPack?.stickers!!) {
-            cursor.addRow(arrayOf<Any?>(sticker!!.imageFileName, TextUtils.join(",", sticker.emojis!!)))
-        }
-        cursor.setNotificationUri(Objects.requireNonNull(context)!!.contentResolver, uri)
-        return cursor
-    }
-
-    fun getStickerPackFile(context: Context, identifier: String?): StickerPack? {
-        Log.d("LOG", "getStickerPackFile " + identifier)
+    fun getStickerPack(context: Context, identifier: String?): StickerPack? {
+        Log.d("LOG", "getStickerPack " + identifier)
         val publisher = getPublisher(context)
         val folder = context.getExternalFilesDir(identifier)
         val files = folder?.listFiles()
@@ -101,19 +62,9 @@ class StickerBook {
         return stickerPackParser(identifier.toString(), fileName, publisher)
     }
 
-    fun deletePack(context: Context, identifier: String?) {
-        Log.d("LOG", "deletePack " + identifier)
-        val directory = context.getExternalFilesDir(identifier)
-        if (directory!!.isDirectory) {
-            for (file in directory.listFiles()) {
-                file.delete()
-            }
-            directory.delete()
-        }
-    }
 
-    fun readContentFile(context: Context): List<StickerPack> {
-        Log.d("LOG", "readContentFile StickerBook")
+    fun getStickerPackList(context: Context): List<StickerPack> {
+        Log.d("LOG", "getStickerPackList")
         val publisher = getPublisher(context)
         val fl = context.getExternalFilesDir("")
         val folders = fl!!.listFiles()
@@ -145,7 +96,7 @@ class StickerBook {
         }
     }
 
-    fun iniStickerPackListParser(context: Context, folders: Map<String, ArrayList<String>>?): ArrayList<StickerPack> {
+    fun getStickerPackList(context: Context, folders: Map<String, ArrayList<String>>?): ArrayList<StickerPack> {
         val publisher = getPublisher(context)
         val stickerPackList: ArrayList<StickerPack> = ArrayList()
         folders?.forEach { (key, value) ->
@@ -204,11 +155,18 @@ class StickerBook {
             }
         }
 
-        return if (stickerList.size > 0) {
+        return if (stickerList.size >= 3) {
             if (name == null) {
                 name = trayImageFile?.substring(0, trayImageFile.lastIndexOf('.'))
             }
-            name = parserName(name)
+
+            if (name.toString().contains("%")) {
+                try {
+                    name = URI(name).path
+                } catch (e: IOException) {
+                    Log.d("LOG", "Error name " + name)
+                }
+            }
 
             Log.d("LOG", "Parser " + identifier + " / " + stickerList.size)
             val stickerPack = StickerPack(identifier, name, publisher, trayImageFile, trayImageUrl, publisherEmail, publisherWebsite, privacyPolicyWebsite, licenseAgreementWebsite, imageDataVersion, avoidCache, animatedStickerPack)
@@ -216,16 +174,6 @@ class StickerBook {
             stickerPack
         } else {
             null
-        }
-    }
-
-    private fun parserName(name: String?): String? {
-        return try {
-            if (name.toString().contains("%")) URI(name).path
-            else name
-        } catch (e: IOException) {
-            Log.d("LOG", "Error name " + name)
-            name
         }
     }
 
