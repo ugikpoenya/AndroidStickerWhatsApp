@@ -52,9 +52,9 @@ class MainActivity : AddStickerPackActivity() {
                 is StickerPackViewHolder -> {
                     val stickerPack = item.stickerPack
                     if (StickerBook().isAssetDownloaded(this, stickerPack)) {
-                        addStickerPackToWhatsApp(stickerPack)
+                        StickerBook().deletePack(this, stickerPack?.identifier)
                     } else {
-                        progressDialog?.show();
+                        progressDialog?.show()
                         StickerBook().downloadAsset(this, stickerPack) { finish, total ->
                             runOnUiThread {
                                 var persen = ((finish.toFloat() / total.toFloat()) * 100).toInt()
