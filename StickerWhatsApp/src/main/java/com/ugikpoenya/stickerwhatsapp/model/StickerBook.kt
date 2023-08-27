@@ -96,11 +96,16 @@ class StickerBook {
         }
     }
 
-    fun getStickerPackList(context: Context, folders: Map<String, ArrayList<String>>?): ArrayList<StickerPack> {
+    fun getStickerPackList(context: Context, folders: Map<String, ArrayList<String>>?, prefix: String? = null): ArrayList<StickerPack> {
         val publisher = getPublisher(context)
         val stickerPackList: ArrayList<StickerPack> = ArrayList()
         folders?.forEach { (key, value) ->
-            val stickerPack = StickerBook().stickerPackParser(key, value, publisher)
+            val identifier = if (prefix.isNullOrEmpty()) {
+                key
+            } else {
+                prefix + key
+            }
+            val stickerPack = StickerBook().stickerPackParser(identifier, value, publisher)
             if (stickerPack?.stickers?.size!! > 3) {
                 stickerPackList.add(stickerPack)
             }
