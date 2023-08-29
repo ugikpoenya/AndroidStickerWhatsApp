@@ -55,6 +55,9 @@ class StickerPack : Parcelable {
     @JvmField
     var isWhitelisted = false
 
+    @JvmField
+    var createdAt = 0.toLong()
+
     constructor(identifier: String?, name: String?, publisher: String?, trayImageFile: String?, publisherEmail: String?, publisherWebsite: String?, privacyPolicyWebsite: String?, licenseAgreementWebsite: String?, imageDataVersion: String?, avoidCache: Boolean, animatedStickerPack: Boolean) {
         this.identifier = identifier
         this.name = name

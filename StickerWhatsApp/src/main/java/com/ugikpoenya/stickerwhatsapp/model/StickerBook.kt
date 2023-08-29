@@ -87,6 +87,7 @@ class StickerBook {
                             stickerPack.name = fileName.readText()
                         }
                     }
+                    stickerPack.createdAt = folders[i].lastModified()
                     stickerPacks.add(stickerPack)
                 }
             }
