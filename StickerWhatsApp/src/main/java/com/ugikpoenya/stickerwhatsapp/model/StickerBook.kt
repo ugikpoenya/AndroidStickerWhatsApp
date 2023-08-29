@@ -160,7 +160,7 @@ class StickerBook {
             }
         }
 
-        return if (stickerList.size >= 3) {
+        return if (files.isNotEmpty()) {
             if (name == null) {
                 name = trayImageFile?.substring(0, trayImageFile.lastIndexOf('.'))
             }
