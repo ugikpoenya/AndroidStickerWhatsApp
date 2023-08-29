@@ -59,7 +59,15 @@ class StickerBook {
                 fileName.add(files[f].name)
             }
         }
-        return stickerPackParser(identifier.toString(), fileName, publisher)
+        val stickerPack = stickerPackParser(identifier.toString(), fileName, publisher)
+        if (stickerPack?.name == "name") {
+            val fileName = File(context.getExternalFilesDir(stickerPack.identifier), "name.txt")
+            if (fileName.exists()) {
+                stickerPack.name = fileName.readText()
+            }
+        }
+        stickerPack?.createdAt = folder.lastModified()
+        return stickerPack
     }
 
 
