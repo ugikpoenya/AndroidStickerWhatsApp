@@ -56,7 +56,7 @@ class StickerBook {
         val fileName: MutableList<String> = ArrayList()
         if (files?.size!! > 0) {
             for (f in files.indices) {
-                fileName.add(files[f].name)
+                fileName.add("file://" + files[f].path)
             }
         }
         val stickerPack = stickerPackParser(identifier.toString(), fileName, publisher)
