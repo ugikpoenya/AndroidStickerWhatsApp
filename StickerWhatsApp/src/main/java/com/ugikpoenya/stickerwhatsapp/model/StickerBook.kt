@@ -3,6 +3,7 @@ package com.ugikpoenya.stickerwhatsapp.model
 import android.content.Context
 import android.database.Cursor
 import android.database.MatrixCursor
+import android.graphics.Bitmap
 import android.net.Uri
 import android.text.TextUtils
 import android.util.Log
@@ -14,7 +15,9 @@ import com.android.volley.toolbox.HttpHeaderParser
 import com.android.volley.toolbox.HurlStack
 import com.android.volley.toolbox.Volley
 import com.ugikpoenya.stickerwhatsapp.Config
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import java.net.URI
@@ -271,7 +274,7 @@ class StickerBook {
 
     class InputStreamVolleyRequest(
         method: Int, mUrl: String?, listener: Response.Listener<ByteArray>,
-        errorListener: Response.ErrorListener?
+        errorListener: Response.ErrorListener?,
     ) : Request<ByteArray?>(method, mUrl, errorListener) {
         private var mListener: Response.Listener<ByteArray>? = null
         var responseHeaders: Map<String, String>? = null
@@ -288,6 +291,37 @@ class StickerBook {
 
         override fun deliverResponse(response: ByteArray?) {
             mListener?.onResponse(response)
+        }
+    }
+
+    fun makeSmallestBitmapCompatible(str: String, bitmap: Bitmap) {
+        val fileOutputStream: FileOutputStream?
+        var byteArrayOutputStream: ByteArrayOutputStream? = null
+        var byteArrayOutputStream2: ByteArrayOutputStream? = null
+        fileOutputStream = try {
+            FileOutputStream(str)
+        } catch (e: FileNotFoundException) {
+            e.printStackTrace()
+            null
+        }
+        val createScaledBitmap = Bitmap.createScaledBitmap(bitmap, 512, 512, true)
+        try {
+            byteArrayOutputStream = ByteArrayOutputStream()
+            try {
+                createScaledBitmap.compress(Bitmap.CompressFormat.WEBP, 45, byteArrayOutputStream)
+            } catch (unused: java.lang.Exception) {
+                byteArrayOutputStream2 = byteArrayOutputStream
+                byteArrayOutputStream = byteArrayOutputStream2
+                fileOutputStream!!.write(byteArrayOutputStream.toByteArray())
+                fileOutputStream.close()
+            }
+        } catch (unused2: java.lang.Exception) {
+        }
+        try {
+            fileOutputStream!!.write(byteArrayOutputStream!!.toByteArray())
+            fileOutputStream.close()
+        } catch (e2: IOException) {
+            e2.printStackTrace()
         }
     }
 
